@@ -23,7 +23,7 @@ public class QHNotifierView: UIView {
             QHNotifierView.showIn(window: window!, msg: msg)
         }
         if autoHide {
-            QHNotifierView.hide(after: 1.0)
+            QHNotifierView.hide(after: 1.2)
         }
     }
     
@@ -40,7 +40,10 @@ public class QHNotifierView: UIView {
     }
     public class func hide(after second: Double) {
         let notifier = QHNotifierView.defaultNotifierView
-        notifier.hideMeAfter(second)
+        if notifier.isShowing {
+            notifier.hideMeAfter(second)
+        }
+        
     }
     
     private class func showIn(window window: UIWindow, msg: String) {
@@ -101,6 +104,9 @@ public class QHNotifierView: UIView {
     private var hor1Constraint: NSLayoutConstraint?
     private var hor2Constraint: NSLayoutConstraint?
     
+    private var isShowing: Bool = false
+    private var canHide: Bool = false
+    
     
     static let defaultNotifierView = QHNotifierView(frame: CGRectZero)
     
@@ -112,6 +118,7 @@ public class QHNotifierView: UIView {
         textLabel.textAlignment = NSTextAlignment.Center
         textLabel.numberOfLines = 0
         textLabel.lineBreakMode = .ByWordWrapping
+        self.backgroundColor = UIColor.redColor()
         
         addSubview(textLabel)
         setupConstraints()
@@ -122,6 +129,8 @@ public class QHNotifierView: UIView {
         textLabel.font = UIFont.systemFontOfSize(13)
         textLabel.textColor = UIColor.whiteColor()
         textLabel.textAlignment = NSTextAlignment.Center
+        textLabel.lineBreakMode = .ByWordWrapping
+        self.backgroundColor = UIColor.redColor()
         
         addSubview(textLabel)
         setupConstraints()
@@ -180,36 +189,46 @@ public class QHNotifierView: UIView {
 }
 
 extension QHNotifierView {
+    //Todo: Double
     private func showMe () {
-        if inWindow == nil {
-            inWindow = UIApplication.sharedApplication().keyWindow
+        if !isShowing {
+            isShowing = true
+            canHide = true
+            if inWindow == nil {
+                inWindow = UIApplication.sharedApplication().keyWindow
+            }
+            inWindow!.addSubview(self)
+            
+            UIView.animateWithDuration(0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: UIViewAnimationOptions.CurveEaseIn, animations: {[unowned self] in
+                
+                var frr = self.inWindow!.frame
+                let size = self.frame.size
+                frr.origin.y = size.height
+                self.inWindow!.frame = frr
+                
+            }, completion: nil)
         }
-        inWindow!.addSubview(self)
         
-        UIView.animateWithDuration(0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: UIViewAnimationOptions.CurveEaseIn, animations: {[unowned self] in
-            
-            var frr = self.inWindow!.frame
-            let size = self.frame.size
-            frr.origin.y = size.height
-            self.inWindow!.frame = frr
-            
-        }, completion: nil)
     }
     private func hideMe () {
         hideMeAfter(0.0)
     }
     private func hideMeAfter(time: Double) {
-        if let _ = inWindow {
-            UIView.animateWithDuration(0.5, delay: time, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: UIViewAnimationOptions.CurveEaseOut, animations: {[unowned self] in
-                
-                var frr = self.inWindow!.frame
-                frr.origin.y = 0
-                self.inWindow!.frame = frr
-                
-            }, completion: { [unowned self] completed in
-                self.removeFromSuperview()
-                self.inWindow = nil
-            })
+        if canHide {
+            canHide = false
+            if let _ = inWindow {
+                UIView.animateWithDuration(0.5, delay: time, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: UIViewAnimationOptions.CurveEaseOut, animations: {[unowned self] in
+                    
+                    var frr = self.inWindow!.frame
+                    frr.origin.y = 0
+                    self.inWindow!.frame = frr
+                    
+                    }, completion: { [unowned self] completed in
+                        self.removeFromSuperview()
+                        self.inWindow = nil
+                        self.isShowing = false
+                    })
+            }
         }
     }
 }
