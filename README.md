@@ -7,5 +7,4 @@ A view on current key window for:
 How to use:
 
   Just add QHNotifierView.swift and :
-  
   `QHNotifierView.show()`
