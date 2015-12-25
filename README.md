@@ -5,4 +5,4 @@ A view on current key window for:
 - Color/background (on progressing)
 How to use:
   Just add QHNotifierView.swift and :
-  [code]QHNotifierView.show()[/code]
+  `QHNotifierView.show()`
